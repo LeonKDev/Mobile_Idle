@@ -1,0 +1,34 @@
+#pragma kernel CSMain
+
+// Define thread count per group
+#define THREAD_COUNT 256
+
+// Struct for each particle
+struct Particle {
+    float2 position;
+    float2 velocity;
+    float radius;
+};
+
+// Buffers
+RWStructuredBuffer<Particle> particles;
+float deltaTime;
+
+// Main compute function
+[numthreads(THREAD_COUNT, 1, 1)]
+void CSMain(uint id : SV_DispatchThreadID) {
+    if (id >= particles.Length) return;
+
+    // Load particle
+    Particle p = particles[id];
+
+    // Update position
+    p.position += p.velocity * deltaTime;
+
+    // Fake collision (screen bounds check)
+    if (p.position.x > 1.0 || p.position.x < -1.0) p.velocity.x *= -1;
+    if (p.position.y > 1.0 || p.position.y < -1.0) p.velocity.y *= -1;
+
+    // Write back
+    particles[id] = p;
+}
